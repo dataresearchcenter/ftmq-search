@@ -48,13 +48,16 @@ class EntityDocument(BaseModel):
 
 class EntitySearchResult(BaseModel):
     id: str = Field(..., examples=["NK-A7z...."])
-    proxy: Entity
+    entity: Entity
     score: float = 1
 
     def __init__(self, /, **data: Any) -> None:
-        if "proxy" not in data:
-            data["proxy"] = self.make_entity(**data)
+        if "entity" not in data:
+            data["entity"] = self.make_entity(**data)
         super().__init__(**data)
+
+    def to_proxy(self) -> CE:
+        return self.entity.to_proxy()
 
     @staticmethod
     def make_entity(
