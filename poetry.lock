@@ -710,9 +710,10 @@ files = [
 name = "elastic-transport"
 version = "8.17.0"
 description = "Transport classes and utilities shared among Python Elastic client libraries"
-optional = false
+optional = true
 python-versions = ">=3.8"
 groups = ["main"]
+markers = "extra == \"elasticsearch\""
 files = [
     {file = "elastic_transport-8.17.0-py3-none-any.whl", hash = "sha256:59f553300866750e67a38828fede000576562a0e66930c641adb75249e0c95af"},
     {file = "elastic_transport-8.17.0.tar.gz", hash = "sha256:e755f38f99fa6ec5456e236b8e58f0eb18873ac8fe710f74b91a16dd562de2a5"},
@@ -729,9 +730,10 @@ develop = ["aiohttp", "furo", "httpcore (<1.0.6)", "httpx", "opentelemetry-api",
 name = "elasticsearch"
 version = "8.18.0"
 description = "Python client for Elasticsearch"
-optional = false
+optional = true
 python-versions = ">=3.8"
 groups = ["main"]
+markers = "extra == \"elasticsearch\""
 files = [
     {file = "elasticsearch-8.18.0-py3-none-any.whl", hash = "sha256:b26a6e67958b7bd04711a31f3400197aabf4a6f03873eadce1a0aeb446653886"},
     {file = "elasticsearch-8.18.0.tar.gz", hash = "sha256:4fb28cfe82d480c72fc049e659afe4cad450b318c210e43493ca402e900793eb"},
@@ -3421,9 +3423,10 @@ typing = ["mypy (>=1.4)", "rich", "twisted"]
 name = "tantivy"
 version = "0.22.0"
 description = ""
-optional = false
+optional = true
 python-versions = ">=3.8"
 groups = ["main"]
+markers = "extra == \"tantivy\""
 files = [
     {file = "tantivy-0.22.0-cp310-cp310-macosx_10_7_x86_64.whl", hash = "sha256:732ec74c4dd531253af4c14756b7650527f22c7fab244e83b42d76a0a1437219"},
     {file = "tantivy-0.22.0-cp310-cp310-macosx_10_9_x86_64.macosx_11_0_arm64.macosx_10_9_universal2.whl", hash = "sha256:bf1da07b7e1003af4260b1ef3c3db7cb05db1578606092a6ca7a3cff2a22858a"},
@@ -3812,7 +3815,11 @@ idna = ">=2.0"
 multidict = ">=4.0"
 propcache = ">=0.2.0"
 
+[extras]
+elasticsearch = ["elasticsearch"]
+tantivy = ["tantivy"]
+
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.11,<4"
-content-hash = "c5f37823b2f416de872713958f4920015c82b963f1b360421acdb8bfadb37cb5"
+content-hash = "3af8532394c0607a2eb930fb2c874646f0d6a642b0e98f60105cc476f00a5a9c"

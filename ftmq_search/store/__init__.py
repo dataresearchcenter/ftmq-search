@@ -6,9 +6,7 @@ from anystore.util import SCHEME_MEMORY, ensure_uri
 from ftmq_search.logging import get_logger
 from ftmq_search.settings import Settings
 from ftmq_search.store.base import BaseStore
-from ftmq_search.store.elastic.store import ElasticStore
 from ftmq_search.store.sqlite import SQliteStore
-from ftmq_search.store.tantivy import TantivyStore
 
 log = get_logger(__name__)
 
@@ -30,7 +28,18 @@ def get_store(**kwargs) -> BaseStore:
     if parsed.scheme == "sqlite":
         return SQliteStore(uri=uri, **kwargs)
     if parsed.scheme in ("tantivy", SCHEME_MEMORY):
-        return TantivyStore(uri=uri, memory=parsed.scheme == SCHEME_MEMORY)
+        try:
+            from ftmq_search.store.tantivy import TantivyStore
+
+            return TantivyStore(uri=uri, memory=parsed.scheme == SCHEME_MEMORY)
+        except ImportError as e:
+            raise ImportError("Tantivy extra dependency not installed.") from e
+
     if parsed.scheme in ("http", "https"):
-        return ElasticStore(uri=uri, **kwargs)
+        try:
+            from ftmq_search.store.elastic.store import ElasticStore
+
+            return ElasticStore(uri=uri, **kwargs)
+        except ImportError as e:
+            raise ImportError("Elasticsearch extra dependency not installed.") from e
     raise NotImplementedError(f"Store scheme: `{parsed.scheme}`")
