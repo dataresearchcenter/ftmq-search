@@ -13,7 +13,7 @@ from ftmq_search.settings import Settings
 
 settings = Settings()
 
-ALLTHETHINGS = Query().where(schema="Thing", include_descendants=True)
+ALLTHETHINGS = Query().where(schema="Thing", schema_include_descendants=True)
 
 
 class EntityDocument(BaseModel):
