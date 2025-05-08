@@ -1029,19 +1029,19 @@ tqdm = ["tqdm"]
 
 [[package]]
 name = "ftmq"
-version = "0.8.2"
+version = "0.8.3"
 description = "followthemoney query dsl and io helpers"
 optional = false
 python-versions = "<4,>=3.11"
 groups = ["main"]
 files = [
-    {file = "ftmq-0.8.2-py3-none-any.whl", hash = "sha256:5d8715799a67fdebd986a8e9703f43002e1b1a7fda7a6298ff51b36e8ccbddc2"},
-    {file = "ftmq-0.8.2.tar.gz", hash = "sha256:4f48891ae9e1a7ae5def11710204e2eae1501998582714ae78fb8d5d5dbf78b7"},
+    {file = "ftmq-0.8.3-py3-none-any.whl", hash = "sha256:389cf11f486a0255f6a600f59d7b84bd43d8e97e62a88390c428379afd94a180"},
+    {file = "ftmq-0.8.3.tar.gz", hash = "sha256:f14fe1c00491ab35824dccb32ccb00b045f883b2098694c9070a82a30b6b802e"},
 ]
 
 [package.dependencies]
 alephclient = ">=2.6.0,<3.0.0"
-anystore = ">=0.3.2,<0.4.0"
+anystore = ">=0.3.3,<0.4.0"
 click = ">=8.1.8,<9.0.0"
 click-default-group = ">=1.2.4,<2.0.0"
 nomenklatura = ">=3.17.3,<4.0.0"
@@ -3890,4 +3890,4 @@ tantivy = ["tantivy"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.11,<4"
-content-hash = "ce9afa0b44c5a0b3be873561a62fde320cd77982d0c374326180900eb7c5cd43"
+content-hash = "eb9632a56bf97c4ba6873c433044ac39ef7ede0b307aa5c571a69420310a2d13"
