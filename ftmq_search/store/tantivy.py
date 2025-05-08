@@ -2,6 +2,7 @@
 Tantivy store
 """
 
+import multiprocessing
 import os
 from functools import cache
 from typing import Iterable
@@ -12,8 +13,13 @@ from ftmq.query import Q
 from normality import normalize
 from pydantic import ConfigDict
 
+from ftmq_search.logging import get_logger
 from ftmq_search.model import AutocompleteResult, EntityDocument, EntitySearchResult
 from ftmq_search.store.base import BaseStore
+
+NUM_CPU = multiprocessing.cpu_count()
+
+log = get_logger(__name__)
 
 
 def or_(key: str, items: Iterable[str]) -> str:
@@ -30,7 +36,7 @@ def make_schema() -> tantivy.Schema:
     schema_builder.add_text_field("countries", tokenizer_name="raw", stored=True)
     schema_builder.add_text_field("caption", stored=True)
     schema_builder.add_text_field("names", stored=True)
-    schema_builder.add_text_field("text", stored=False)
+    schema_builder.add_text_field("text", stored=False, tokenizer_name="en_stem")
     return schema_builder.build()
 
 
@@ -57,14 +63,17 @@ class TantivyStore(BaseStore):
             self.flush()
 
     def flush(self) -> None:
-        writer = self.index.writer()
+        log.info("Flushing %d items..." % len(self.buffer), store=self.uri)
+        writer = self.index.writer(heap_size=15000000 * NUM_CPU, num_threads=NUM_CPU)
         for doc in self.buffer:
             writer.add_document(doc)
         writer.commit()
+        writer.wait_merging_threads()
+        self.index.reload()
         self.buffer = []
 
     def search(self, q: str, query: Q | None = None) -> Iterable[EntitySearchResult]:
-        searcher = self.get_searcher()
+        searcher = self.index.searcher()
         t_query = self.parse_query(q, query)
         res = searcher.search(t_query)
         for score, doc_address in res.hits:
@@ -77,7 +86,7 @@ class TantivyStore(BaseStore):
 
     def autocomplete(self, q: str) -> Iterable[AutocompleteResult]:
         nq = normalize(q)
-        searcher = self.get_searcher()
+        searcher = self.index.searcher()
         t_query = self.index.parse_query(f"{q}*", ["names"])
         res = searcher.search(t_query)
         for _, doc_address in res.hits:
@@ -85,10 +94,6 @@ class TantivyStore(BaseStore):
             for name in doc.get_all("names"):
                 if normalize(name).startswith(nq):
                     yield AutocompleteResult(id=doc.get_first("id"), name=name)
-
-    def get_searcher(self) -> tantivy.Searcher:
-        self.index.reload()
-        return self.index.searcher()
 
     def parse_query(self, q: str, query: Q) -> tantivy.Query:
         stmt = q
