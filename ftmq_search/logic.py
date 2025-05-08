@@ -5,8 +5,11 @@ from anystore.io import DEFAULT_WRITE_MODE, Uri, logged_items, smart_open, smart
 from ftmq.io import smart_stream_proxies
 from ftmq.types import CE, SE
 
+from ftmq_search.logging import get_logger
 from ftmq_search.model import ALLTHETHINGS, EntityDocument
 from ftmq_search.store.base import BaseStore
+
+log = get_logger(__name__)
 
 
 def transform(in_uri: Uri, out_uri: Uri) -> None:
@@ -16,6 +19,7 @@ def transform(in_uri: Uri, out_uri: Uri) -> None:
             "Transform",
             uri=in_uri,
             item_name="Entity",
+            logger=log,
         ):
             if ALLTHETHINGS.apply(proxy):
                 doc = EntityDocument.from_proxy(proxy)
@@ -31,6 +35,7 @@ def index(in_uri: Uri, store: BaseStore) -> None:
         from_uri=in_uri,
         uri=store.uri,
         item_name="EntityDocument",
+        logger=log,
     ):
         doc = EntityDocument(**orjson.loads(line))
         store.put(doc)
@@ -39,7 +44,9 @@ def index(in_uri: Uri, store: BaseStore) -> None:
 
 def index_proxies(proxies: Iterable[CE | SE], store: BaseStore) -> None:
     proxies = ALLTHETHINGS.apply_iter(proxies)
-    for proxy in logged_items(proxies, "Index", item_name="Proxy", uri=store.uri):
+    for proxy in logged_items(
+        proxies, "Index", item_name="Proxy", uri=store.uri, logger=log
+    ):
         doc = EntityDocument.from_proxy(proxy)
         store.put(doc)
     store.flush()
