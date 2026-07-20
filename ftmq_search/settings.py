@@ -26,11 +26,3 @@ class Settings(BaseSettings):
 
     # sql
     sql_table_name: str = "ftmqs"
-
-
-class ElasticSettings(BaseSettings):
-    model_config = SettingsConfigDict(env_prefix="elastic_")
-
-    index: str = "ftmqs"
-    user: str = ""
-    password: str = ""

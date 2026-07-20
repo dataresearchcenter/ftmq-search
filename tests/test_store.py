@@ -1,24 +1,19 @@
-import time
-
-from ftmq.model import Entity
+from followthemoney import ValueEntity
+from ftmq.model.entity import EntityModel as Entity
 from ftmq.query import Query
-from nomenklatura.entity import CompositeEntity
 
-from ftmq_search.logic import index_proxies
+from ftmq_search.logic import index_entities
 from ftmq_search.store import get_store
 from ftmq_search.store.base import BaseStore
-from ftmq_search.store.elastic.store import ElasticStore
 
 
 def _test_store(donations, store: BaseStore):
-    index_proxies(donations, store)
-    if isinstance(store, ElasticStore):
-        time.sleep(5)  # let index breath a bit
+    index_entities(donations, store)
     res = [r for r in store.search("metall")]
     assert len(res) == 3
     assert res[0].id == "62ad0fe6f56dbbf6fee57ce3da76e88c437024d5"
     assert isinstance(res[0].entity, Entity)
-    assert isinstance(res[0].to_proxy(), CompositeEntity)
+    assert isinstance(res[0].to_proxy(), ValueEntity)
 
     res = [r for r in store.search("metall OR tchibo")]
     assert len(res) == 4
@@ -57,13 +52,6 @@ def _test_store(donations, store: BaseStore):
 
 def test_store_sqlite(donations, tmp_path):
     store = get_store(uri="sqlite:///" + str(tmp_path / "ftmqs.db"))
-    assert _test_store(donations, store)
-
-
-def test_store_elastic(donations):
-    index = f"pytest-{time.time()}"
-    store = get_store(uri="http://localhost:9200", index=index)
-    store.init()
     assert _test_store(donations, store)
 
 
