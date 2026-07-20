@@ -9,8 +9,9 @@ The aim is to experiment around with different full-text search backends for eff
 Currently supported backends:
 
 - [Sqlite FTS5](https://www.sqlite.org/fts5.html)
-- [Elasticsearch](https://www.elastic.co/guide/en/elasticsearch/reference/current/index.html)
 - [Tantivy](https://github.com/quickwit-oss/tantivy) (persistent or in-memory)
+
+For [Elasticsearch](https://www.elastic.co/guide/en/elasticsearch/reference/current/index.html), use either [openaleph-search](https://openaleph.org/docs/lib/openaleph-search/) that can be used standalone outside [OpenAleph](https://openaleph.org) or [yente](https://yente.followthemoney.tech/).
 
 ## Install
 
@@ -32,14 +33,6 @@ Speed it up via [GNU Parallel](https://www.gnu.org/software/parallel/sphinx.html
 
     ftmqs --uri sqlite:///ftmqs.store index -i entities.transformed.json
 
-### Elasticsearch
-
-    ftmqs --uri http://localhost:9200 index -i entities.transformed.json
-
-ES can be parallelized:
-
-    cat entities.transformed.json | parallel -j8 --pipe --roundrobin ftmqs --uri http://localhost:9200 index
-
 ### Tantivy
 
     ftmqs --uri tantivy://tantivy.db index -i entities.transformed.json
@@ -55,13 +48,10 @@ ES can be parallelized:
 ## Python
 
 ```python
-from ftmq import Query, smart_stream_proxies
+from ftmq import Query, smart_read_proxies
 
 from ftmqs import get_store
 from ftmqs.logic import index_proxies
-
-# elasticsearch
-store = get_store("http://localhost:9200")
 
 # sqlite
 store = get_store("sqlite:///ftmqs.db")
@@ -73,7 +63,7 @@ store = get_store("tantivy://tantivy.db")
 store = get_store("memory://")
 
 # index entity data
-proxies = smart_stream_proxies("./entities.ftm.json")
+proxies = smart_read_proxies("./entities.ftm.json")
 index_proxies(proxies, store)
 
 # search

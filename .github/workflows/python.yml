@@ -12,21 +12,11 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    services:
-      elastic:
-        image: elasticsearch:8.17.0
-        ports:
-          - 9200:9200
-        env:
-          "discovery.type": single-node
-          "xpack.security.enabled": false
-          "xpack.security.transport.ssl.enabled": false
-          "xpack.security.http.ssl.enabled": false
 
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.11", "3.12", "3.13"]
+        python-version: ["3.11", "3.12", "3.13", "3.14"]
 
     steps:
       - uses: actions/checkout@v4
@@ -78,4 +68,4 @@ jobs:
         uses: coverallsapp/github-action@v2
         with:
           parallel-finished: true
-          carryforward: "run-3.11,run-3.12,run-3.13"
+          carryforward: "run-3.11,run-3.12,run-3.13,run-3.14"

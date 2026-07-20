@@ -1,6 +1,6 @@
 from typing import Iterable
 
-from anystore.mixins import BaseModel
+from anystore.model import BaseModel
 from ftmq.query import Q
 
 from ftmq_search.model import AutocompleteResult, EntityDocument, EntitySearchResult

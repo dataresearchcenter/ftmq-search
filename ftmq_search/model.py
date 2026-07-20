@@ -1,19 +1,16 @@
 from typing import Any, Iterable, Self
 
+import fingerprints
 from banal import ensure_list
+from followthemoney import EntityProxy
 from followthemoney.types import registry
-from followthemoney.util import join_text
-from ftmq import Query
-from ftmq.model import Entity
-from ftmq.types import CE, SE
+from ftmq.model import EntityModel
 from pydantic import BaseModel, ConfigDict, Field
 
 from ftmq_search.exceptions import IntegrityError
 from ftmq_search.settings import Settings
 
 settings = Settings()
-
-ALLTHETHINGS = Query().where(schema="Thing", schema_include_descendants=True)
 
 
 class EntityDocument(BaseModel):
@@ -24,31 +21,46 @@ class EntityDocument(BaseModel):
     schema_: str = Field(..., examples=["LegalEntity"], alias="schema")
     datasets: list[str] = Field([], examples=[["us_ofac_sdn"]])
     countries: list[str] = Field([], examples=[["de"]])
+    temporal_start: str | None = Field(default=None, examples=["2022-01"])
+    temporal_end: str | None = Field(default=None, examples=["2022-01"])
+    dates: list[str]
     names: list[str]
+    fingerprints: list[str]
+    linked_entities: list[str]
     text: str = ""
 
     @classmethod
-    def from_proxy(cls, proxy: CE | SE) -> Self:
-        if proxy.id is None:
+    def from_entity(cls, entity: EntityProxy) -> Self:
+        if entity.id is None:
             raise IntegrityError("Entity has no ID!")
-        names = proxy.get_type_values(registry.name)
-        text = join_text(*[v for values in proxy.properties.values() for v in values])
+        names = entity.get_type_values(registry.name)
+        fps = set([fingerprints.generate(n) for n in names])
+        fps = sorted([f for f in fps if f])
+        text = " ".join(
+            sorted([v for values in entity.properties.values() for v in values])
+        )
         text = text or ""
+        dates = entity.get_type_values(registry.date)
 
         return cls(
-            id=proxy.id,
-            datasets=list(proxy.datasets),
-            schema=proxy.schema.name,
-            countries=proxy.countries,
-            caption=proxy.caption,
-            names=names,
+            id=entity.id,
+            datasets=list(entity.datasets),
+            schema=entity.schema.name,
+            countries=entity.countries,
+            caption=entity.caption,
+            names=sorted(names),
+            fingerprints=fps,
+            linked_entities=entity.get_type_values(registry.entity),
             text=text,
+            temporal_start=min(dates) if dates else None,
+            temporal_end=max(dates) if dates else None,
+            dates=dates,
         )
 
 
 class EntitySearchResult(BaseModel):
     id: str = Field(..., examples=["NK-A7z...."])
-    entity: Entity
+    entity: EntityModel
     score: float = 1
 
     def __init__(self, /, **data: Any) -> None:
@@ -56,7 +68,7 @@ class EntitySearchResult(BaseModel):
             data["entity"] = self.make_entity(**data)
         super().__init__(**data)
 
-    def to_proxy(self) -> CE:
+    def to_proxy(self) -> EntityProxy:
         return self.entity.to_proxy()
 
     @staticmethod
@@ -68,8 +80,8 @@ class EntitySearchResult(BaseModel):
         names: Iterable[str],
         countries: Iterable[str] | None = None,
         **kwargs: Any,
-    ) -> Entity:
-        return Entity(
+    ) -> EntityModel:
+        return EntityModel(
             id=id,
             schema=schema,
             datasets=list(datasets),

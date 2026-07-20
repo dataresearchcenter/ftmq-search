@@ -2,7 +2,7 @@ from typing import Annotated, Iterable, Optional
 
 import typer
 from anystore.cli import ErrorHandler
-from anystore.io import smart_write, smart_write_json
+from anystore.io import smart_write_json
 from anystore.types import SDictGenerator
 from anystore.util import model_dump
 from pydantic import BaseModel
@@ -13,12 +13,9 @@ from ftmq_search.logging import configure_logging
 from ftmq_search.logic import index, transform
 from ftmq_search.settings import Settings
 from ftmq_search.store import get_store
-from ftmq_search.store.elastic.mapping import make_mapping
 
 settings = Settings()
 cli = typer.Typer(no_args_is_help=True, pretty_exceptions_enable=settings.debug)
-cli_elastic = typer.Typer(no_args_is_help=True)
-cli.add_typer(cli_elastic, name="elastic")
 
 state = {"uri": settings.uri, "store": get_store()}
 
@@ -82,32 +79,3 @@ def cli_autocomplete(q: str, out_uri: Annotated[str, typer.Option("-o")] = "-"):
     with ErrorHandler():
         res = serialize(state["store"].autocomplete(q))
         smart_write_json(out_uri, res)
-
-
-@cli_elastic.command("init")
-def cli_elastic_init():
-    """
-    Setup elasticsearch index
-    """
-    with ErrorHandler():
-        state["store"].init()
-
-
-@cli_elastic.command("mapping")
-def cli_elastic_mapping(out_uri: Annotated[str, typer.Option("-o")] = "-"):
-    """
-    Print elasticsearch mapping
-    """
-    with ErrorHandler():
-        content = make_mapping()
-        smart_write_json(out_uri, [content])
-
-
-@cli_elastic.command("logstash")
-def cli_elastic_logstash(out_uri: Annotated[str, typer.Option("-o")] = "-"):
-    """
-    Print logstash config
-    """
-    with ErrorHandler():
-        content = state["store"].make_logstash()
-        smart_write(out_uri, content)

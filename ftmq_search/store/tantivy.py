@@ -34,6 +34,7 @@ def make_schema() -> tantivy.Schema:
     schema_builder.add_text_field("datasets", tokenizer_name="raw", stored=True)
     schema_builder.add_text_field("schema", tokenizer_name="raw", stored=True)
     schema_builder.add_text_field("countries", tokenizer_name="raw", stored=True)
+    schema_builder.add_text_field("fingerprints", tokenizer_name="raw", stored=True)
     schema_builder.add_text_field("caption", stored=True)
     schema_builder.add_text_field("names", stored=True)
     schema_builder.add_text_field("text", stored=False, tokenizer_name="en_stem")
@@ -58,7 +59,7 @@ class TantivyStore(BaseStore):
         super().__init__(**data)
 
     def put(self, doc: EntityDocument) -> None:
-        self.buffer.append(tantivy.Document(**model_dump(doc)))
+        self.buffer.append(tantivy.Document(**model_dump(doc, clean=True)))
         if len(self.buffer) == 100_000:
             self.flush()
 
